@@ -1,0 +1,22 @@
+sudo: required
+services:
+  - docker
+
+before_install:
+  - docker build -t pres1av/react-test -f ./client/Dockerfile.dev ./client
+
+script:
+  - docker run -e CI=true pres1av/react-test npm test
+
+after_success:
+  - docker build -t pres1av/multi-client ./client
+  - docker build -t pres1av/multi-nginx ./nginx
+  - docker build -t pres1av/multi-server ./server
+  - docker build -t pres1av/multi-worker ./worker
+
+  - echo "$DOCKER_PASWORD" | docker login -u "$DOCKER_ID" --password-stdin
+
+  - docker push pres1av/multi-client
+  - docker push pres1av/multi-nginx
+  - docker push pres1av/multi-server
+  - docker push pres1av/multi-worker
